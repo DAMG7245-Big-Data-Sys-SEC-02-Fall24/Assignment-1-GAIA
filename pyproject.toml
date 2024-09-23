@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "assignment-1-gaia"
+version = "0.1.0"
+description = ""
+authors = ["suryaMadhav16 <rebbapragada.s@northeastern.edu>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.38.0"
+pandas = "^2.2.3"
+openai = "^1.47.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
