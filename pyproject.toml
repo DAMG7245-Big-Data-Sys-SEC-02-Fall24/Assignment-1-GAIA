@@ -10,6 +10,11 @@ python = "^3.11"
 streamlit = "^1.38.0"
 pandas = "^2.2.3"
 openai = "^1.47.0"
+jupyter = "^1.1.1"
+psycopg2-binary = "^2.9.9"
+datasets = "^3.0.0"
+mlcroissant = "^1.0.8"
+sqlalchemy = "^2.0.35"
 
 
 [build-system]
