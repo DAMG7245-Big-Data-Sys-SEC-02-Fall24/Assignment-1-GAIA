@@ -2,8 +2,7 @@
 name = "assignment-1-gaia"
 version = "0.1.0"
 description = ""
-authors = ["suryaMadhav16 <rebbapragada.s@northeastern.edu>","akashvarun10 <pemmaraju.v@northeastern.edu>", "
-UdayKiranDasari16 <dasari.uda@northeastern.edu>"]
+authors = ["suryaMadhav16 <rebbapragada.s@northeastern.edu>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
