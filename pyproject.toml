@@ -15,6 +15,13 @@ psycopg2-binary = "^2.9.9"
 datasets = "^3.0.0"
 mlcroissant = "^1.0.8"
 sqlalchemy = "^2.0.35"
+requests = "^2.32.3"
+pypdf2 = "^3.0.1"
+mutagen = "^1.47.0"
+python-dotenv = "^1.0.1"
+python-docx = "^1.1.2"
+python-pptx = "^1.0.2"
+matplotlib = "^3.9.2"
 
 
 [build-system]
