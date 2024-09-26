@@ -7,10 +7,6 @@ import toml
 import streamlit as st
 class DataAccess:
     def __init__(self):
-        print("---------------------")
-        print(st.secrets["database"])
-        print(st.secrets["database"]["database_url"])
-        print("---------------------")
         DATABASE_URL = st.secrets["database"]["database_url"]
 
         engine = create_engine(DATABASE_URL)
