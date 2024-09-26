@@ -2,24 +2,12 @@ from sqlalchemy import create_engine, MetaData, Table, select, func, case
 from sqlalchemy.orm import sessionmaker
 import random
 from datetime import datetime
-from dotenv import load_dotenv
 import os
+import streamlit as st
 
-# Load the .env file
-load_dotenv()
-
-# Fetch database connection parameters from environment variables
-params = {
-    'host': os.getenv('DB_HOST'),
-    'port': os.getenv('DB_PORT', '5432'),  # Default port is 5432 if not provided
-    'database': os.getenv('DB_DATABASE'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD')
-}
 
 # Construct the database URL for SQLAlchemy
-DATABASE_URL = f"postgresql+psycopg2://{params['user']}:{params['password']}@{params['host']}:{params['port']}/{params['database']}"
-
+DATABASE_URL = st.secrets["database"]["database_url"]
 # Create the SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
