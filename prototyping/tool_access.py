@@ -101,6 +101,23 @@ def compare_answers(test_case, agent_full_answer):
 
     return agent_full_answer, final_answer, is_correct
 
+def download_file(file_path):
+    """Provide a download button for a file."""    # Ensure file exists
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as file:
+            file_bytes = file.read()
+            file_name = os.path.basename(file_path)
+            
+            # Display download button
+            st.download_button(
+                label=f"Download {file_name}",
+                data=file_bytes,
+                file_name=file_name,
+                mime="application/octet-stream"
+            )
+    else:
+        st.warning(f"File {file_path} not found.")
+
 # Function to generate a report after the evaluations
 def generate_report():
     st.header("Evaluation Report")
@@ -134,7 +151,6 @@ def generate_report():
     st.write("**Detailed Feedback:**")
     st.dataframe(df[['task_id', 'question', 'llm_full_answer', 'llm_final_answer', 'correct_answer', 'is_correct']])
 
-# Function to handle reading any dependent files for a test case
 def handle_file_reading(test_case):
     if test_case.get('file_name'):
         file_path = os.path.join('2023', 'validation', test_case['file_name'])
@@ -182,10 +198,15 @@ def handle_file_reading(test_case):
                         context += f"\nTranscription: {transcription}"
                     except json.JSONDecodeError:
                         st.warning("Failed to decode audio metadata.")
+                
+                # Call the download function here
+                download_file(file_path)
+                
                 return context
             else:
                 # For unsupported tools or ReadTXT
                 with open(file_path, 'r', encoding='utf-8') as f:
+                    download_file(file_path)  # Call download function for text files too
                     return f.read()
         else:
             st.warning(f"Dependent file {test_case['file_name']} not found.")
