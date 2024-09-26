@@ -1,86 +1,102 @@
-import streamlit as st # type: ignore
+import os
 
-from random import randint
-
-import utils.SupabaseClient as sc
-from utils.OpenAI import ask_gpt, basic_ask_gpt
-
-sc.create_connection()
-data = sc.fetch_all()
-# TODO: Create types for data
-total_questions = len(data)
-print("Total number of questions: " + str(total_questions))
+import streamlit as st
+from src.data_layer.data_access import data_access_instance
+from src.data_layer.models import Task
+from src.utils.gpt import evaluate
 
 
+def get_random_task():
+    task: Task | None = data_access_instance.get_random_task()
+    clear_session_storage()
+    print("🧹🧹🧹🧹Got random question nd cleared storage 🧹🧹🧹🧹")
+    return task
 def clear_session_storage():
-    st.session_state["Row"] = None
+    print("Clearing storage")
+    st.session_state["Task"] = None
     st.session_state["Response"] = None
     st.session_state["Reprompt"] = False
     st.session_state["Re_Response"] = None
+    st.session_state["File_Path"] = None
 
 
-# List of all variables used in session state
+def parse_response(response):
+    # Split the response into explanation and final answer
+    parts = response.split("Final Answer:", 1)
 
-def pick_random_question():
-    clear_session_storage()
-    ran_int = randint(0, total_questions - 1)
-    picked_row = data[ran_int]
-    print(picked_row["task_id"])
-    return picked_row
+    if len(parts) == 2:
+        explanation = parts[0].strip()
+        final_answer = parts[1].strip()
+        return explanation, final_answer
+    else:
+        return None, None
 
 
-if "Row" not in st.session_state:
-    st.session_state["Row"] = None
+def display_response(response):
+    explanation, final_answer = parse_response(response)
+
+    if explanation is not None and final_answer is not None:
+        # Display the explanation in an expander
+        with st.expander("Thought Process", expanded=False):
+            st.write(explanation)
+
+        # Display the final answer
+        st.success(f"Final Answer: {final_answer}")
+    else:
+        # Backup: Display the whole response if parsing fails
+        st.warning("Couldn't parse the response into separate parts. Displaying the full response:")
+        st.success(response)
+
+
+st.title("LLM Prompting 🤖")
+if "Task" not in st.session_state:
+    st.session_state["Task"] = None
 if "Response" not in st.session_state:
     st.session_state["Response"] = None
 if "Reprompt" not in st.session_state:
     st.session_state["Reprompt"] = False
 if "Re_Response" not in st.session_state:
     st.session_state["Re_Response"] = None
+if "File_Path" not in st.session_state:
+    st.session_state["File_Path"] = None
 
-
-# Title and random number picker
-st.title("OpenAI Prompting")
 if st.button("Pick a random question 🎲"):
-    row = pick_random_question()
-    st.session_state["Row"] = row
+    task: Task | None = get_random_task()
+    st.session_state["Task"] = task
 
-# Question Info
-if st.session_state["Row"]:
-    row = st.session_state["Row"]
-    st.text_area(label="Question", value=row["Question"])
-    st.text_input(label="Expected Answer", value=row["Final answer"])
+if st.session_state["Task"]:
+    task = st.session_state["Task"]
+    st.text_area(label="Question", value=task.question)
+    st.text_input(label="Expected Answer", value=task.expectedanswer)
+    if task.filename and st.session_state["File_Path"] is None:
+        with st.spinner("Getting required files"):
+            from src.data_layer.object_store import download_file_from_gcs
+            file_path = download_file_from_gcs(task.filename)
+            st.session_state["File_Path"] = file_path
 
-# Prompt LLM First time and ask gpt
-if st.session_state["Response"] is None and st.session_state["Row"] is not None:
+if st.session_state["File_Path"]:
+    file_path = st.session_state["File_Path"]
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as file:
+            file_bytes = file.read()
+            file_name = os.path.basename(file_path)
+
+            # Display download button
+            st.download_button(
+                label=f"Download {file_name}",
+                data=file_bytes,
+                file_name=file_name,
+                mime="application/octet-stream"
+            )
+    else:
+        st.warning(f"File {file_path} not found.")
+
+
+
+if st.session_state["Response"] is None and st.session_state["Task"] is not None:
     if st.button("Prompt LLM", type="primary"):
-        row = st.session_state["Row"]
+        task: Task = st.session_state["Task"]
         with st.spinner("Generating Response..."):
-            st.session_state["Response"] = basic_ask_gpt(row["Question"])
+            st.session_state["Response"] = evaluate(task, st.session_state["File_Path"])
+            display_response(st.session_state["Response"])
 
-# Annotate text box and further controls
-if st.session_state["Reprompt"] == True:
-    row = st.session_state["Row"]
-    st.text_area("Annotator Metadata",row["Annotator Metadata"])
-    if st.button("Re-Prompt GPT"):
-        with st.spinner("Generating Response..."):
-            st.session_state["Re_Response"] = basic_ask_gpt(row["Question"] + "\n" + row["Annotator Metadata"])
-
-# This is being triggered cz of the rerun logic in ask_gpt
-if st.session_state["Response"] and st.session_state["Reprompt"] is False:
-    row = st.session_state["Row"]
-    st.success(st.session_state["Response"])
-    # TODO: Use columns to view it side by side
-    if st.button("Answer is As Is", type="primary"):
-        st.session_state["Reprompt"] = True
-        st.success("Great")
-    if st.button("Annotate & Re-Prompt"):
-        st.session_state["Reprompt"] = True
-        st.rerun()
-
-if "Re_Response" in st.session_state and st.session_state["Re_Response"]:
-    st.success(st.session_state["Re_Response"])
-    if st.button("Mark as failed to answer"):
-        st.success("Marked as Failed")
-    if st.button("Mark as succeeded on annotating"):
-        st.success("Marked as success on annotating")

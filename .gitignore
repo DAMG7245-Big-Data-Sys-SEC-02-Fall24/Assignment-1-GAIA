@@ -162,4 +162,5 @@ cython_debug/
 #.idea/
 
 .idea
+gcp.json
 .DS_Store
