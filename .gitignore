@@ -162,5 +162,5 @@ cython_debug/
 #.idea/
 
 .idea
-.env
 gcp.json
+.DS_Store

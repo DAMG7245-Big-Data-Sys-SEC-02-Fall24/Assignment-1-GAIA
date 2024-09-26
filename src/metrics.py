@@ -2,14 +2,19 @@ from sqlalchemy import create_engine, MetaData, Table, select, func, case
 from sqlalchemy.orm import sessionmaker
 import random
 from datetime import datetime
+from dotenv import load_dotenv
+import os
 
-# Database connection parameters
+# Load the .env file
+load_dotenv()
+
+# Fetch database connection parameters from environment variables
 params = {
-    'host': "35.243.210.8",
-    'port': "5432",
-    'database': "assignment-1-postgres",
-    'user': "admin",
-    'password': "Password"
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT', '5432'),  # Default port is 5432 if not provided
+    'database': os.getenv('DB_DATABASE'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD')
 }
 
 # Construct the database URL for SQLAlchemy
@@ -283,11 +288,13 @@ def performance_by_task_level():
 # # Execute the delete function
 # #delete_data()
 
+# print("Insering Data...................\n")
 # # Execute the insert function
 # #insert_random_data(1,1001)
 
-# #list_columns_and_data('llms',True)
-# #list_columns_and_data('llmresponses',True)
+
+#list_columns_and_data('llms',True)
+#list_columns_and_data('llmresponses',True)
 
 
 # acc1=overall_accuracy_per_llm()
@@ -300,3 +307,37 @@ def performance_by_task_level():
 # print(f"Metrics 4.........\n{acc4}")
 # acc5=performance_by_task_level()
 # print(f"Metrics 5.........\n{acc5}")
+
+def response_count_by_category():
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    # Reflect the tables
+    metadata.reflect(bind=engine)
+
+    llmresponses_table = metadata.tables['llmresponses']
+
+    query = session.query(
+        llmresponses_table.c.resultcategory,
+        func.count(llmresponses_table.c.responseid).label('count')
+    ).group_by(llmresponses_table.c.resultcategory)
+
+    return query.all()
+
+def response_breakdown_by_task_level():
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    
+    # Reflect the tables
+    metadata.reflect(bind=engine)
+
+    llmresponses_table = metadata.tables['llmresponses']
+    tasks_table = metadata.tables['tasks']
+
+    # Query to count responses by resultcategory and task level
+    query = session.query(
+        tasks_table.c.level,
+        llmresponses_table.c.resultcategory,
+        func.count(llmresponses_table.c.responseid).label('count')
+    ).join(tasks_table, llmresponses_table.c.taskid == tasks_table.c.taskid).group_by(tasks_table.c.level, llmresponses_table.c.resultcategory)
+
+    return query.all()
