@@ -101,6 +101,9 @@ def compare_answers(test_case, agent_full_answer):
 
     return agent_full_answer, final_answer, is_correct
 
+"""
+####### Changed lines for download. (reference)
+"""
 def download_file(file_path):
     """Provide a download button for a file."""    # Ensure file exists
     if os.path.exists(file_path):
@@ -117,6 +120,10 @@ def download_file(file_path):
             )
     else:
         st.warning(f"File {file_path} not found.")
+"""
+####### Changed lines for download. (reference) 
+
+"""
 
 # Function to generate a report after the evaluations
 def generate_report():
@@ -151,6 +158,7 @@ def generate_report():
     st.write("**Detailed Feedback:**")
     st.dataframe(df[['task_id', 'question', 'llm_full_answer', 'llm_final_answer', 'correct_answer', 'is_correct']])
 
+# Function to handle reading any dependent files for a test case
 def handle_file_reading(test_case):
     if test_case.get('file_name'):
         file_path = os.path.join('2023', 'validation', test_case['file_name'])
