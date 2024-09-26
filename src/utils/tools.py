@@ -20,10 +20,8 @@ import streamlit as st
 load_dotenv()
 
 client = OpenAI(
-    base_url=os.getenv("base_url") or st.secrets("base_url"),
-    api_key=os.getenv("api_key") or st.secrets("api_key"))
-
-
+    base_url=st.secrets["openAI"]["base_url"],
+    api_key=st.secrets["openAI"]["api_key"])
 
 class FileProcessor:
     def __init__(self):
