@@ -16,10 +16,13 @@ import pptx
 import wave
 import mutagen
 import base64
-
+import streamlit as st
 load_dotenv()
 
-client = OpenAI()
+client = OpenAI(
+    base_url=os.getenv("base_url") or st.secrets("base_url"),
+    api_key=os.getenv("api_key") or st.secrets("api_key"))
+
 
 
 class FileProcessor:
@@ -45,6 +48,7 @@ class FileProcessor:
         """Reads an Excel file and returns its content as a JSON string."""
         try:
             df = pd.read_excel(file_path)
+            print(df)
             return df.to_json(orient='records')
         except Exception as e:
             return f"Error reading Excel file: {str(e)}"

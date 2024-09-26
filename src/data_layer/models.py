@@ -1,11 +1,10 @@
 
-from sqlalchemy import create_engine, Column, Integer, String, JSON, Boolean, DateTime
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import Column, Integer, String, JSON, Boolean, DateTime
+from sqlalchemy.orm import declarative_base
 from datetime import datetime
 Base = declarative_base()
 class Task(Base):
     __tablename__ = 'tasks'
-
     taskid = Column(String, primary_key=True, name="taskid")  # lowercase column names
     question = Column(String, nullable=False, name="question")
     expectedanswer = Column(String, name="expectedanswer")
@@ -41,8 +40,38 @@ class LLMResponse(Base):
 
     def __repr__(self):
         return f"<LLMResponse(responseid={self.responseid}, taskid='{self.taskid}', llmid={self.llmid})>"
-#TODO: Update url locally
-# Database connection
-DATABASE_URL = "***"
-engine = create_engine(DATABASE_URL)
-SessionMaker = sessionmaker(bind=engine)
+
+
+from datetime import datetime
+from typing import Dict, Any
+
+def create_task(data) -> Task:
+    print(data.question)
+    return Task(
+        taskid=data['taskid'],
+        question=data['question'],
+        expectedanswer=data['expectedanswer'],
+        level=data['level'],
+        filename=data['filename'],
+        filepath=data['filepath'],
+        annotations=data['annotations']
+    )
+
+def create_llm(data: Dict[str, Any]) -> LLM:
+    return LLM(
+        llmid=data['llmid'],
+        llmname=data['llmname'],
+        version=data['version'],
+        parameters=data['parameters']
+    )
+
+def create_llm_response(data: Dict[str, Any]) -> LLMResponse:
+    return LLMResponse(
+        responseid=data['responseid'],
+        taskid=data['taskid'],
+        llmid=data['llmid'],
+        responsetext=data['responsetext'],
+        isannotated=data.get('isannotated', False),  # Keeping .get() for optional fields with defaults
+        resultcategory=data['resultcategory'],
+        timestamp=data.get('timestamp', datetime.utcnow())  # Keeping .get() for optional fields with defaults
+    )
