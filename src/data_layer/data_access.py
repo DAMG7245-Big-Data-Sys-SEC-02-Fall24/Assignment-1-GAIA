@@ -1,9 +1,11 @@
 from typing import Type
-
+import os
+import sys
+# Add the 'src' directory to the Python path dynamically
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from sqlalchemy.orm import Session, sessionmaker
 from src.data_layer.models import Task, LLM, LLMResponse
-from sqlalchemy import func, create_engine
-import toml
+from sqlalchemy import func, create_engine, delete
 import streamlit as st
 class DataAccess:
     def __init__(self):
@@ -58,6 +60,42 @@ class DataAccess:
             func.right(Task.filename, len(file_extension) + 1).like(f'.{file_extension}')
         ).order_by(func.random())
                 .first())
+
+    def get_all_llms(self) -> list[LLM]:
+        """
+        Fetches all LLMs from the database.
+        """
+        return self.session.query(LLM).all()
+
+    def delete_llm(self, llmid: int) -> None:
+        """
+        Deletes an LLM by ID from the database.
+        """
+        self.session.execute(delete(LLM).where(LLM.llmid == llmid))
+        self.session.commit()
+    def create_llm_response_for_task(self, taskid: str, llmid: int, responsetext: str, resultcategory: str,
+                                     isannotated: bool = False):
+        new_response = LLMResponse(
+            taskid=taskid,
+            llmid=llmid,
+            responsetext=responsetext,
+            resultcategory=resultcategory,
+            isannotated=isannotated
+        )
+        self.session.add(new_response)
+        self.session.commit()  # Commit the transaction to save the new row in the database
+        return new_response
+
+    def create_llm_entry(self, llmid: int, llmname: str, version: str, parameters: str):
+        new_llm = LLM(
+            llmid=llmid,
+            llmname=llmname,
+            version=version,
+            parameters=parameters
+        )
+        self.session.add(new_llm)
+        self.session.commit()  # Commit the transaction to save the new LLM in the database
+        return new_llm
 
 
 data_access_instance = DataAccess()
