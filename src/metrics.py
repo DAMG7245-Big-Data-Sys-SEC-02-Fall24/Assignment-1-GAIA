@@ -120,29 +120,30 @@ def delete_data():
         session.close()
 
 
-# Function to calculate overall accuracy per LLM
-def overall_accuracy_per_llm():
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    metadata.reflect(bind=engine)
+# # Function to calculate overall accuracy per LLM
+# def overall_accuracy_per_llm():
+#     Session = sessionmaker(bind=engine)
+#     session = Session()
+#     metadata.reflect(bind=engine)
 
-    llmresponses_table = metadata.tables['llmresponses']
-    llms_table = metadata.tables['llms']
+#     llmresponses_table = metadata.tables['llmresponses']
+#     llms_table = metadata.tables['llms']
 
-    query = session.query(
-        llms_table.c.llmname,
-        (func.count(case(
-            (llmresponses_table.c.isannotated == False, llmresponses_table.c.responseid)
-        )) / func.count(func.distinct(llmresponses_table.c.taskid)) * 100).label("accuracy_percentage")
-    ).filter(
-        llmresponses_table.c.resultcategory == 'AS IS'
-    ).join(llms_table, llmresponses_table.c.llmid == llms_table.c.llmid).group_by(
-        llms_table.c.llmname
-    )
+#     # Corrected query to calculate the "AS IS" responses where is_annotated == False for each specific LLM
+#     query = session.query(
+#         llms_table.c.llmname,
+#         (func.sum(case(
+#             (llmresponses_table.c.isannotated == False, 1)
+#         )) / func.count(llmresponses_table.c.responseid) * 100).label("accuracy_percentage")
+#     ).filter(
+#         llmresponses_table.c.resultcategory == 'AS IS'
+#     ).join(llms_table, llmresponses_table.c.llmid == llms_table.c.llmid).group_by(
+#         llms_table.c.llmname
+#     )
 
-    results = [(row[0], row[1]) for row in query.all()]
-    session.close()
-    return results
+#     results = [(row[0], row[1]) for row in query.all()]
+#     session.close()
+#     return results
     # print("Overall Accuracy per LLM (As Is):")
     # for row in query.all():
     #     print(f"LLM ID: {row[0]}, Accuracy: {row[1]:.2f}%")
