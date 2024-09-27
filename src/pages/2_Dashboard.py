@@ -56,36 +56,35 @@ def plot_donut_charts_for_levels(df_response_breakdown):
 plot_donut_charts_for_levels(df_response_breakdown)
 
 
-# Overall Accuracy per LLM
-# Overall Accuracy per LLM (As Is)
-st.subheader("Overall Accuracy per LLM (As Is)")
-st.markdown("""
-**Definition:** The overall accuracy is defined as the percentage of correct responses (AS IS) made by the LLM without any annotation or further prompting.
-""")
-st.latex(r'''
-\text{Accuracy} = \frac{\text{Number of Correct Responses (AS IS)}}{\text{Total Number of Tasks}} \times 100
-''')
+# # Overall Accuracy per LLM (As Is)
+# st.subheader("Overall Accuracy per LLM (As Is)")
+# st.markdown("""
+# **Definition:** The overall accuracy is defined as the percentage of correct responses (AS IS) made by the LLM without any annotation or further prompting.
+# """)
+# st.latex(r'''
+# \text{Accuracy} = \frac{\text{Number of Correct Responses (AS IS)}}{\text{Total Number of Tasks}} \times 100
+# ''')
 
-overall_accuracy = mt.overall_accuracy_per_llm()
-if overall_accuracy:
-    df_overall_accuracy = pd.DataFrame(overall_accuracy, columns=['LLM ID', 'Accuracy'])
-    # Formatting the accuracy to 2 decimal places
-    df_overall_accuracy['Accuracy'] = df_overall_accuracy['Accuracy'].round(2)
-    # Create vertical bar chart (default orientation)
-    fig_overall_accuracy = px.bar(df_overall_accuracy, x='LLM ID', y='Accuracy', 
-                                  title="Overall Accuracy per LLM", 
-                                  labels={'Accuracy': 'Accuracy (%)', 'LLM ID': 'LLM'},
-                                  text='Accuracy',orientation='v',text_auto='.2f',category_orders={"Result Category": category_order})
-    fig_overall_accuracy.update_traces(
-            texttemplate='<b>%{text:.2f}</b>',  # Make text bold and round to 2 decimal places
-            textposition='inside',            # Position text outside the bars
-            textfont_size=26,                   # Increase font size
-            textfont_color='Black'
-        )
-    fig_overall_accuracy.update_layout(yaxis_range=[0, 150])
-    st.plotly_chart(fig_overall_accuracy)
-else:
-    st.write("No data available for overall accuracy.")
+# overall_accuracy = mt.overall_accuracy_per_llm()
+# if overall_accuracy:
+#     df_overall_accuracy = pd.DataFrame(overall_accuracy, columns=['LLM ID', 'Accuracy'])
+#     # Formatting the accuracy to 2 decimal places
+#     df_overall_accuracy['Accuracy'] = df_overall_accuracy['Accuracy'].round(2)
+#     # Create vertical bar chart (default orientation)
+#     fig_overall_accuracy = px.bar(df_overall_accuracy, x='LLM ID', y='Accuracy', 
+#                                   title="Overall Accuracy per LLM", 
+#                                   labels={'Accuracy': 'Accuracy (%)', 'LLM ID': 'LLM'},
+#                                   text='Accuracy',orientation='v',text_auto='.2f',category_orders={"Result Category": category_order})
+#     fig_overall_accuracy.update_traces(
+#             texttemplate='<b>%{text:.2f}</b>',  # Make text bold and round to 2 decimal places
+#             textposition='inside',            # Position text outside the bars
+#             textfont_size=26,                   # Increase font size
+#             textfont_color='Black'
+#         )
+#     fig_overall_accuracy.update_layout(yaxis_range=[0, 150])
+#     st.plotly_chart(fig_overall_accuracy)
+# else:
+#     st.write("No data available for overall accuracy.")
 
 # Accuracy with Annotation
 st.subheader("Accuracy with Annotation")
