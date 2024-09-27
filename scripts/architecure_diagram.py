@@ -1,10 +1,10 @@
-
 from diagrams import Diagram, Cluster, Edge
 from diagrams.custom import Custom
 from diagrams.gcp.storage import Storage
 from diagrams.gcp.database import SQL
 from diagrams.programming.language import Python
 from diagrams.onprem.client import User
+from diagrams.onprem.client import Client
 
 graph_attr = {
     "fontsize": "45",
@@ -12,13 +12,13 @@ graph_attr = {
     "pad": "0.75"
 }
 
-output_path = "../assets/multimodal_llm_benchmarking_application_architecture.png"
+output_path = "../assets/multimodal_llm_benchmarking_application_architecture"
 
 with Diagram("Multimodal LLM Benchmarking Application Architecture", filename=output_path, show=False, direction="LR", graph_attr=graph_attr): 
     
     with Cluster("Data Sources"):
         hf = Custom("Hugging Face", "../assets/icons/hf-logo.png")
-        local = Custom("Local Machine", "computer")
+        local = Client('Local Machine')
     
     with Cluster("Google Cloud Platform"):
         gcp_logo = Custom("", "../assets/icons/gcp-logo.png")
