@@ -59,10 +59,14 @@ with Diagram("Multimodal LLM Benchmarking Application Architecture", filename=ou
     ui >> Edge(color="blue") >> llm_prompting
     ui >> Edge(color="blue") >> dashboard
 
-    # LLM prompting interactions with data sources
-    llm_prompting >> Edge(color="red", label="Query") >> db
-    llm_prompting >> Edge(color="red", label="Fetch") >> gcs
-    llm_prompting >> Edge(color="purple", label="Request") >> openai
+    # LLM prompting interactions with data sources (Reversed arrow from GCP Bucket to UI)
+    llm_prompting << Edge(color="red", label="Fetch Data") << gcs
+    llm_prompting << Edge(color="red", label="Query") << db
+    llm_prompting >> Edge(color="blue", label="Query") >> db  # Bi-directional arrow
+
+    # Double arrow interaction with OpenAI
+    llm_prompting << Edge(color="purple", label="Request") << openai
+    llm_prompting >> Edge(color="purple", label="Response") >> openai
 
     # Dashboard metrics fetching
-    dashboard >> Edge(color="darkblue", style="bold", label="Fetch Metrics") >> db
+    db >> Edge(color="darkblue", style="bold", label="Fetching LLM Evaluation Metrics") >> dashboard
