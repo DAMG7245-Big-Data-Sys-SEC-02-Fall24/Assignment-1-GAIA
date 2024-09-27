@@ -21,7 +21,6 @@ load_dotenv()
 # print(st.secrets["openAI"]["api_key"])
 # print("-----------------------")
 client = OpenAI(
-    base_url=st.secrets["openAI"]["base_url"],
     api_key=st.secrets["openAI"]["api_key"]
 )
 
