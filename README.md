@@ -86,3 +86,120 @@ The architecture consists of the following components:
 - Visualize performance metrics, including model accuracy, response quality, and interaction history.
 
 
+Here's an updated README section with instructions for installing Poetry before continuing with the rest of the setup steps:
+
+---
+
+## Project Installation Guide
+
+### Prerequisites
+
+Ensure that you have the following installed on your system:
+- Python
+- Terraform
+- GIT
+- GCP Account 
+
+
+### 1. Clone the Repository
+
+Now, clone the repository to your local machine:
+
+```bash
+git clone https://github.com/DAMG7245-Big-Data-Sys-SEC-02-Fall24/Assignment-1-GAIA.git
+cd Assignment-1-GAIA
+```
+
+### 2. Configure Secrets
+
+To configure sensitive information like GCP credentials, OpenAI API key, and database settings:
+
+Replace the placeholders (`xxxxxxx`) with your actual credentials in `secrets.toml`
+
+### 3. Terraform Infrastructure Setup
+
+If your project involves infrastructure management via Terraform, you can deploy the infrastructure as follows:
+
+1. Initialize Terraform:
+
+   ```bash
+   terraform init
+   ```
+
+2. Plan the infrastructure changes:
+
+   ```bash
+   terraform plan
+   ```
+
+3. Apply the infrastructure changes:
+
+   ```bash
+   terraform apply
+   ```
+
+   Confirm the changes by typing `yes` when prompted.
+
+  
+### 4. Install Poetry
+
+Poetry is used for dependency management. You can install it by running the following command:
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+After installation, ensure that Poetry is added to your system's PATH by following the instructions provided after installation. To verify that Poetry is installed correctly, run:
+
+```bash
+poetry --version
+```
+
+### 5. Install Python Dependencies
+
+With Poetry installed, you can now install all project dependencies:
+
+```bash
+poetry install
+```
+
+This command will set up a virtual environment and install all required packages as specified in `pyproject.toml`.
+
+### 5. Activate the Poetry Shell
+
+Activate the Poetry-managed virtual environment:
+
+```bash
+poetry shell
+```
+
+### 6. Activate the Poetry Shell
+
+Activate the Poetry-managed virtual environment:
+
+```bash
+poetry shell
+```
+### 6. Go the the Application Directory
+
+Change Directory to the folder containing Entrypoint
+```bash
+cd src 
+```
+
+
+### 8. Run the Streamlit App
+
+To launch the application, execute the following command:
+
+```bash
+streamlit run GAIA.py
+```
+
+This will start the Streamlit app and open it in your browser.
+
+
+
+### Conclusion
+
+Your application should now be running, and the required infrastructure should be deployed. For additional configuration or updates, refer to the project-specific documentation.
