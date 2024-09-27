@@ -23,26 +23,30 @@ st.write("""
 - **Performance Dashboards**: Visualize LLM performance through various metrics such as overall accuracy, improvement rate, and failure rate.
 - **Customizable**: Reprompt with annotations for better evaluation, enabling a more robust LLM comparison.
 """)
+query_params = st.query_params
 
-# Navigation to Other Pages
-st.subheader("Explore the Application")
-st.write("Navigate to the available pages using the buttons below:")
-
-# Navigation buttons to other pages
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    if st.button('LLM Prompting'):
-        st.write("Navigate to LLM Prompting from the sidebar to explore this feature.")
-
-with col2:
-    if st.button('Dashboard'):
-        st.write("Navigate to the Dashboard for performance metrics.")
-
-with col3:
-    if st.button('Dropdown Dashboard'):
-        st.write("Navigate to the Dropdown Dashboard to explore detailed visualizations.")
-
+# def navigate_to(page):
+#     st.experimental_set_query_params(page=page)
+#
+# current_page = query_params.get('page', ['home'])[0]
+# # Navigation to Other Pages
+# st.subheader("Explore the Application")
+# st.write("Navigate to the available pages using the buttons below:")
+#
+# # Navigation buttons to other pages
+# col1, col2, col3 = st.columns(3)
+#
+# with col1:
+#     if st.button('LLM Prompting'):
+#         st.write("Navigate to LLM Prompting from the sidebar to explore this feature.")
+#         navigate_to("LLM_Prompting")
+#
+# with col2:
+#     if st.button('Dashboard'):
+#         st.write("Navigate to the Dashboard for performance metrics.")
+#         navigate_to("Dashboard")
+#
+#
 # with col4:
 #     if st.button('Documentation'):
 #         st.write("For more information and how-to guides, visit the documentation section (if applicable).")

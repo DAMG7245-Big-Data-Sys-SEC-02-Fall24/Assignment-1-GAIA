@@ -39,7 +39,7 @@ class LLMResponse(Base):
     timestamp = Column(DateTime, default=datetime.utcnow, name="timestamp")
 
     def __repr__(self):
-        return f"<LLMResponse(responseid={self.responseid}, taskid='{self.taskid}', llmid={self.llmid})>"
+        return f"<LLMResponse(responseid={self.responseid}, resultcategory={self.resultcategory}, taskid='{self.taskid}', llmid={self.llmid})>"
 
 
 from datetime import datetime

@@ -32,7 +32,6 @@ class DataAccess:
     def get_random_task(self):
         return (
             self.session.query(Task)
-            .filter(Task.filename != None)
             .order_by(func.random())
             .first()
         )
@@ -73,8 +72,13 @@ class DataAccess:
         """
         self.session.execute(delete(LLM).where(LLM.llmid == llmid))
         self.session.commit()
-    def create_llm_response_for_task(self, taskid: str, llmid: int, responsetext: str, resultcategory: str,
+    def create_llm_response_for_task(self, taskid: str, responsetext: str,
+                                     resultcategory: str,
+                                     llmid: int = 2,
                                      isannotated: bool = False):
+        if resultcategory not in ["With Annotation" , "AS IS" , "Helpless!"]:
+            raise ValueError(f"Invalid result category: {resultcategory}. "
+                             f"Expected one of 'correct', 'incorrect', 'incomplete'.")
         new_response = LLMResponse(
             taskid=taskid,
             llmid=llmid,
@@ -83,7 +87,8 @@ class DataAccess:
             isannotated=isannotated
         )
         self.session.add(new_response)
-        self.session.commit()  # Commit the transaction to save the new row in the database
+        self.session.commit()
+        print(new_response)# Commit the transaction to save the new row in the database
         return new_response
 
     def create_llm_entry(self, llmid: int, llmname: str, version: str, parameters: str):
