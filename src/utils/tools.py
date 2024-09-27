@@ -14,7 +14,7 @@ import zipfile
 
 import streamlit as st
 
-client = OpenAI(api_key=st.secrets["openAI"]["api_key"], base_url=st.secrets["openAI"]["base_url"])
+client = OpenAI(api_key=st.secrets["openAI"]["api_key"])
 
 
 class FileProcessor:
