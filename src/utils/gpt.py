@@ -11,6 +11,7 @@ from src.utils.tools import tools
 
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 # print("-----------------------")
 # print(os.getcwd())
@@ -22,7 +23,9 @@ client = OpenAI(
     base_url=st.secrets["openAI"]["base_url"],
     api_key=st.secrets["openAI"]["api_key"]
 )
-def handle_file_reading(task: Task, file_path: str=None):
+
+
+def handle_file_reading(task: Task, file_path: str = None):
     if task.filename:
         # Attempt to download the file from GCS
 
@@ -83,14 +86,22 @@ def handle_file_reading(task: Task, file_path: str=None):
             return ""
     return ""
 
-def evaluate(task:Task, file_path):
-    print("Eval1-----------------------------------\n")
+
+def evaluate(task: Task, file_path,llm, annotation=False):
+    print(f"llm: {llm.llmname}")
     context = handle_file_reading(task, file_path)
-    print("Eval2-----------------------------------\n")
-    agent_full_answer = get_agent_answer(task.question, context)
-    print("Eval3-----------------------------------\n")
+    question = task.question
+    if annotation:
+        print("---Annotation---")
+        print(task.annotations)
+        question = task.question + task.annotations
+    agent_full_answer = get_agent_answer(question, context, llm)
     return agent_full_answer
-def get_agent_answer(question, context="", additional_prompt=""):
+
+
+def get_agent_answer(question, context="", llm=None, additional_prompt=""):
+    if llm is None:
+        llm = {"llmname": "gpt-4o-mini"}
     prompt = f"""You are a general AI assistant. I will ask you a question. Report your thoughts, and finish your answer with the following template: FINAL ANSWER: [YOUR FINAL ANSWER]. YOUR FINAL ANSWER should be a number OR as few words as possible OR a comma separated list of numbers and/or strings. If you are asked for a number, don't use comma to write your number neither use units such as $ or percent sign unless specified otherwise. If you are asked for a string, don't use articles, neither abbreviations (e.g. for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated list, apply the above rules depending on whether the element is a number or a string. Answer the following question as best you can, speaking as a general AI assistant. You have access to the following tools:
 
 Search: useful for when you need to answer questions about current events or the current state of the world
@@ -128,7 +139,7 @@ Question: {question}
 {additional_prompt}
 """
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model= llm.llmname or "gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         temperature=0)
 
@@ -137,6 +148,7 @@ Question: {question}
         return response.choices[0].message.content
     else:
         return "No response received from the model."
+
 
 def get_random_task():
     task: Task | None = data_access_instance.get_random_task()
@@ -153,6 +165,3 @@ if __name__ == "__main__":
           f"{task.filename}"
           f"\n{task.filepath}")
     evaluate(task)
-
-
-

@@ -1,15 +1,9 @@
 import json
 import pandas as pd
-import matplotlib.pyplot as plt
 import os
-from dotenv import load_dotenv
-from typing import List, Union
-import re
-from PIL import Image
-import io
 from openai import OpenAI
 import requests
-import zipfile
+
 import PyPDF2
 import docx
 import pptx
@@ -18,9 +12,9 @@ import mutagen
 import base64
 import zipfile
 
-load_dotenv()
+import streamlit as st
 
-client = OpenAI()
+client = OpenAI(api_key=st.secrets["openAI"]["api_key"], base_url=st.secrets["openAI"]["base_url"])
 
 
 class FileProcessor:
