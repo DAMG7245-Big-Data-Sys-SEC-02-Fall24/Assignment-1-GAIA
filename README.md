@@ -11,6 +11,17 @@
 
 
 
+### Demo URL Link 
+
+https://drive.google.com/drive/folders/1wgYeUY-HsDuWcqGq1hSNVRQ3gvQBMLZC?usp=sharing
+
+### Deployed Streamlit app link
+
+https://a1b1gaia.streamlit.app
+
+### Code Labs Link
+
+https://codelabs-preview.appspot.com/?file_id=1rkwEQLnM5Z62LN___AOHtexZJ9DzQ0kDlELlBA2dzlY#1
 
 
 
@@ -205,9 +216,6 @@ This will start the Streamlit app and open it in your browser.
 
 Your application should now be running, and the required infrastructure should be deployed. For additional configuration or updates, refer to the project-specific documentation.
 
-### Demo URL Link 
-
-https://drive.google.com/drive/folders/1wgYeUY-HsDuWcqGq1hSNVRQ3gvQBMLZC?usp=sharing
 
 ### ATTESTATION  
 
