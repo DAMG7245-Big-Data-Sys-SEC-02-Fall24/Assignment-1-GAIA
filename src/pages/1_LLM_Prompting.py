@@ -184,7 +184,7 @@ def display_mark_as_is_button():
 def display__mark_correct_after_annotation_button():
     if st.button("Mark as correct", type="primary"):
         if data_access_instance.create_llm_response_for_task(task.taskid, st.session_state["Re_Response"],
-                                                             "With Annotation", st.session_state["selected_llm"].llmid):
+                                                             "With Annotation", st.session_state["selected_llm"].llmid, isannotated=True):
             st.toast("Response marked as correct.", icon='✅')
             clear_session_storage()
             time.sleep(2)
@@ -211,7 +211,7 @@ def display_failed_even_after_annotation_button():
     if st.button("Mark as failed to answer", type="secondary"):
         with st.spinner("Updating response..."):
             if data_access_instance.create_llm_response_for_task(task.taskid, st.session_state["Re_Response"],
-                                                                 "Helpless!", st.session_state["selected_llm"].llmid):
+                                                                 "Helpless!", st.session_state["selected_llm"].llmid, isannotated=True):
                 st.toast("Response marked as failed to answer.", icon='✅')
                 clear_session_storage()
                 time.sleep(2)
