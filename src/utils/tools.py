@@ -16,12 +16,12 @@ import pptx
 import wave
 import mutagen
 import base64
-import streamlit as st
+import zipfile
+
 load_dotenv()
 
-client = OpenAI(
-    base_url=st.secrets["openAI"]["base_url"],
-    api_key=st.secrets["openAI"]["api_key"])
+client = OpenAI()
+
 
 class FileProcessor:
     def __init__(self):
@@ -46,7 +46,6 @@ class FileProcessor:
         """Reads an Excel file and returns its content as a JSON string."""
         try:
             df = pd.read_excel(file_path)
-            print(df)
             return df.to_json(orient='records')
         except Exception as e:
             return f"Error reading Excel file: {str(e)}"
@@ -60,10 +59,23 @@ class FileProcessor:
             return f"Error reading CSV file: {str(e)}"
 
     def read_zip(self, file_path: str) -> str:
-        """Reads a ZIP file and returns a list of its contents."""
+        """Reads a ZIP file, returns both the list of its contents and the content of each file inside."""
         try:
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                return json.dumps(zip_ref.namelist())
+                file_contents = {}
+                
+                # Loop over each file in the ZIP archive
+                for file_name in zip_ref.namelist():
+                    with zip_ref.open(file_name) as file:
+                        try:
+                            # Read file contents and decode to utf-8 if text-based
+                            file_contents[file_name] = file.read().decode('utf-8')
+                        except UnicodeDecodeError:
+                            # If the file is binary, return its base64 encoded content
+                            file_contents[file_name] = base64.b64encode(file.read()).decode('utf-8')
+                
+                # Return as a JSON string: the structure is {filename: content}
+                return json.dumps(file_contents, indent=4)
         except Exception as e:
             return f"Error reading ZIP file: {str(e)}"
 
@@ -117,22 +129,28 @@ class FileProcessor:
             return text
         except Exception as e:
             return f"Error reading PPTX file: {str(e)}"
-
+            
     def read_audio(self, file_path: str) -> str:
-        """Reads an audio file, transcribes it using OpenAI's Whisper API,
-        and returns its transcription along with metadata."""
+        """Transcribes audio using OpenAI's Whisper API. Returns transcription and metadata if available."""
         try:
-            if file_path.endswith('.mp3') or file_path.endswith('.wav'):
-                # Extract metadata using mutagen for MP3 or wave for WAV
-                metadata = {}
-                transcription = ""
-                if file_path.endswith('.mp3'):
+            # Transcribe audio
+            transcription = ""
+            metadata = {}
+
+            with open(file_path, "rb") as audio_file:
+                transcription_response = client.audio.transcribe(model="whisper-1", file=audio_file)
+                transcription = transcription_response.get("text", "")
+
+            # Extract metadata for MP3 or WAV if needed
+            if file_path.endswith('.mp3'):
+                try:
                     audio = mutagen.File(file_path)
-                    metadata = {
-                        "length": audio.info.length,
-                        "bitrate": audio.info.bitrate
-                    }
-                elif file_path.endswith('.wav'):
+
+                except Exception:
+                    metadata["error"] = "Failed to extract MP3 metadata."
+
+            elif file_path.endswith('.wav'):
+                try:
                     with wave.open(file_path, 'rb') as wav:
                         metadata = {
                             "channels": wav.getnchannels(),
@@ -140,19 +158,15 @@ class FileProcessor:
                             "framerate": wav.getframerate(),
                             "frames": wav.getnframes()
                         }
+                except Exception:
+                    metadata["error"] = "Failed to extract WAV metadata."
 
-                # Transcribe the audio using OpenAI's Whisper API
-                with open(file_path, "rb") as audio_file:
-                    transcription_response = client.audio.transcribe(model="whisper-1",
-                    file=audio_file)
-                    transcription = transcription_response.get("text", "")
+            metadata["transcription"] = transcription
+            return json.dumps(metadata)
 
-                metadata["transcription"] = transcription
-                return json.dumps(metadata)
-            else:
-                return "Unsupported audio format for transcription."
         except Exception as e:
-            return f"Error reading/transcribing audio file: {str(e)}"
+            return f"Error processing audio file: {str(e)}"
+
 
     def read_pdb(self, file_path: str) -> str:
         """Reads a PDB file and returns its content."""
@@ -161,22 +175,17 @@ class FileProcessor:
                 return file.read()
         except Exception as e:
             return f"Error reading PDB file: {str(e)}"
-
-    def read_jsonld(self, file_path: str) -> str:
-        """Reads a JSON-LD file and returns its content."""
-        try:
-            with open(file_path, 'r') as file:
-                return json.dumps(json.load(file))
-        except Exception as e:
-            return f"Error reading JSON-LD file: {str(e)}"
-
+            
     def read_txt(self, file_path: str) -> str:
         """Reads a TXT file and returns its content."""
         try:
+            if not os.path.exists(file_path):
+                return f"Error: File {file_path} does not exist."
             with open(file_path, 'r', encoding='utf-8') as file:
                 return file.read()
         except Exception as e:
             return f"Error reading TXT file: {str(e)}"
+
 
 
 # Define the tools
@@ -194,6 +203,5 @@ tools = {
     "ReadPPTX": file_processor.read_pptx,
     "ReadAudio": file_processor.read_audio,
     "ReadPDB": file_processor.read_pdb,
-    "ReadJSONLD": file_processor.read_jsonld,
-    "ReadTXT": file_processor.read_txt  # Added ReadTXT
+    "ReadTXT": file_processor.read_txt 
 }
