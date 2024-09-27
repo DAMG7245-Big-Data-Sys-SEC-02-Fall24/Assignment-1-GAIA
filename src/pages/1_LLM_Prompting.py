@@ -34,14 +34,15 @@ def initialize_session_state():
 def clear_session_storage():
     print("Clearing storage")
     for key, default in session_defaults.items():
-        st.session_state[key] = default
+        if key != "selected_llm":
+            st.session_state[key] = default
 
 def need_an_update():
     st.rerun()
 
 def llm_management_ui():
     st.sidebar.title("LLM Management")
-
+    print("LLM:-------------------", st.session_state['selected_llm'])
     # Fetch all LLMs
     llms = data_access_instance.get_all_llms()
 
@@ -168,7 +169,7 @@ def display_re_annotation_button():
 def display_mark_as_is_button():
     if st.button("Mark as correct", type="primary"):
         # Show success message if db ubdate is successful
-        if data_access_instance.create_llm_response_for_task(task.taskid, st.session_state["Response"], "AS IS"):
+        if data_access_instance.create_llm_response_for_task(task.taskid, st.session_state["Response"], "AS IS", st.session_state["selected_llm"].llmid):
             st.toast("Response marked as correct.", icon='✅')
             clear_session_storage()
             time.sleep(2)
@@ -183,7 +184,7 @@ def display_mark_as_is_button():
 def display__mark_correct_after_annotation_button():
     if st.button("Mark as correct", type="primary"):
         if data_access_instance.create_llm_response_for_task(task.taskid, st.session_state["Re_Response"],
-                                                             "With Annotation"):
+                                                             "With Annotation", st.session_state["selected_llm"].llmid):
             st.toast("Response marked as correct.", icon='✅')
             clear_session_storage()
             time.sleep(2)
@@ -210,7 +211,7 @@ def display_failed_even_after_annotation_button():
     if st.button("Mark as failed to answer", type="secondary"):
         with st.spinner("Updating response..."):
             if data_access_instance.create_llm_response_for_task(task.taskid, st.session_state["Re_Response"],
-                                                                 "Helpless!"):
+                                                                 "Helpless!", st.session_state["selected_llm"].llmid):
                 st.toast("Response marked as failed to answer.", icon='✅')
                 clear_session_storage()
                 time.sleep(2)

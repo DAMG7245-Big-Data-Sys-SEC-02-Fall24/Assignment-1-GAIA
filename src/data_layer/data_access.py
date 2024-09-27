@@ -32,7 +32,6 @@ class DataAccess:
     def get_random_task(self):
         return (
             self.session.query(Task)
-            .filter(Task.filename != None)
             .order_by(func.random())
             .first()
         )
