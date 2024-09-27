@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 
@@ -25,7 +26,28 @@ client = OpenAI(
 )
 
 
+def get_image_data_url(image_file: str, image_format: str) -> str:
+    """
+    Helper function to converts an image file to a data URL string.
+
+    Args:
+        image_file (str): The path to the image file.
+        image_format (str): The format of the image file.
+
+    Returns:
+        str: The data URL of the image.
+    """
+    try:
+        with open(image_file, "rb") as f:
+            image_data = base64.b64encode(f.read()).decode("utf-8")
+    except FileNotFoundError:
+        print(f"Could not read '{image_file}'.")
+        exit()
+    return f"data:image/{image_format};base64,{image_data}"
+
+
 def handle_file_reading(task: Task, file_path: str = None):
+    print(f"File path: {file_path}")
     if task.filename:
         # Attempt to download the file from GCS
 
@@ -35,7 +57,7 @@ def handle_file_reading(task: Task, file_path: str = None):
             _, ext = os.path.splitext(file_path)
             ext = ext.lower()
             tool = None  # Default to None
-
+            print(f"File extension: {ext}")
             # Identify the appropriate tool based on file extension
             if ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp']:
                 tool = "ReadImage"
@@ -64,7 +86,7 @@ def handle_file_reading(task: Task, file_path: str = None):
             elif ext == '.txt':
                 tool = "ReadTXT"
 
-            if tool and tool in tools:
+            if tool and tool != "ReadImage" and tool in tools:
                 context = tools[tool](file_path)
                 # If the tool is ReadAudio, extract transcription
                 if tool == "ReadAudio":
@@ -74,51 +96,39 @@ def handle_file_reading(task: Task, file_path: str = None):
                         context += f"\nTranscription: {transcription}"
                     except json.JSONDecodeError:
                         st.warning("Failed to decode audio metadata.")
+                print("-------------Context----------------")
                 print(context)
-                return context
+                return (context, tool)
+            elif tool == "ReadImage":
+                context = get_image_data_url(file_path, ext)
+                return (context, tool)
             else:
                 # If the tool is unsupported, treat as plain text or return empty string
                 with open(file_path, 'r', encoding='utf-8') as f:
-                    return f.read()
+                    return (f.read(), tool)
         else:
             # If the file download failed or file does not exist
             st.warning(f"File {task.filename} could not be downloaded or was not found.")
-            return ""
-    return ""
+            return ("", None)
+    return ("", None)
 
 
-def evaluate(task: Task, file_path,llm, annotation=False):
+def evaluate(task: Task, file_path, llm, annotation=False):
     print(f"llm: {llm.llmname}")
-    context = handle_file_reading(task, file_path)
+    context, tool = handle_file_reading(task, file_path)
     question = task.question
     if annotation:
         print("---Annotation---")
         print(task.annotations)
         question = task.question + task.annotations
-    agent_full_answer = get_agent_answer(question, context, llm)
+    agent_full_answer = get_agent_answer(question, context, llm, tool=tool)
     return agent_full_answer
 
 
-def get_agent_answer(question, context="", llm=None, additional_prompt=""):
+def get_agent_answer(question, context="", llm=None, additional_prompt="", tool=None):
     if llm is None:
         llm = {"llmname": "gpt-4o-mini"}
-    prompt = f"""You are a general AI assistant. I will ask you a question. Report your thoughts, and finish your answer with the following template: FINAL ANSWER: [YOUR FINAL ANSWER]. YOUR FINAL ANSWER should be a number OR as few words as possible OR a comma separated list of numbers and/or strings. If you are asked for a number, don't use comma to write your number neither use units such as $ or percent sign unless specified otherwise. If you are asked for a string, don't use articles, neither abbreviations (e.g. for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated list, apply the above rules depending on whether the element is a number or a string. Answer the following question as best you can, speaking as a general AI assistant. You have access to the following tools:
-
-Search: useful for when you need to answer questions about current events or the current state of the world
-ReadImage: useful for reading image files. Input should be the file path to the image.
-ReadExcel: useful for reading Excel files. Input should be the file path to the Excel file.
-ReadCSV: useful for reading CSV files. Input should be the file path to the CSV file.
-ReadZIP: useful for reading ZIP files. Input should be the file path to the ZIP file.
-ReadPDF: useful for reading PDF files. Input should be the file path to the PDF file.
-ReadJSON: useful for reading JSON files. Input should be the file path to the JSON file.
-ReadPython: useful for reading Python files. Input should be the file path to the Python file.
-ReadDOCX: useful for reading DOCX files. Input should be the file path to the DOCX file.
-ReadPPTX: useful for reading PPTX files. Input should be the file path to the PPTX file.
-ReadAudio: useful for reading audio files (MP3, WAV). Input should be the file path to the audio file.
-ReadPDB: useful for reading PDB files. Input should be the file path to the PDB file.
-ReadJSONLD: useful for reading JSON-LD files. Input should be the file path to the JSON-LD file.
-ReadTXT: useful for reading TXT files. Input should be the file path to the TXT file.
-
+    prompt = f"""You are a general AI assistant. I will ask you a question. Report your thoughts, and finish your answer with the following template: FINAL ANSWER: [YOUR FINAL ANSWER]. YOUR FINAL ANSWER should be a number OR as few words as possible OR a comma separated list of numbers and/or strings. If you are asked for a number, don't use comma to write your number neither use units such as $ or percent sign unless specified otherwise. If you are asked for a string, don't use articles, neither abbreviations (e.g. for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated list, apply the above rules depending on whether the element is a number or a string. Answer the following question as best you can, speaking as a general AI assistant.
 Use the following format:
 
 Question: the input question you must answer
@@ -132,15 +142,34 @@ Final Answer: the final answer to the original input question
 
 Begin Remember to speak as a general AI assistant when giving your final answer.
 
-Context: {context}
-
 Question: {question}
 
 {additional_prompt}
 """
+    message = {"role": "user",
+                   "content": [
+                       {
+                           "type": "text",
+                           "text": prompt
+                       }
+                   ]}
+    if tool == "ReadImage":
+        message["content"].append({
+            "type": "image_url",
+            "image_url": {
+                "url": context,
+                "detail": "low"
+            }
+        })
+    else:
+        message["content"].append({
+            "type": "text",
+            "text": f"Context: {context}"
+        })
+    print(f"Message: {message}")
     response = client.chat.completions.create(
-        model= llm.llmname or "gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
+        model=llm.llmname or "gpt-4o-mini",
+        messages=[message],
         temperature=0)
 
     # Ensure response.choices is a list and access the first element
@@ -156,12 +185,16 @@ def get_random_task():
 
 
 if __name__ == "__main__":
-    task = data_access_instance.query_by_file_type("xlsx")
+    llm = data_access_instance.get_all_llms()[0]
+    task = data_access_instance.query_by_file_type("png")
+    path = None
     if task.filename:
-        download_file_from_gcs(task.filename)
+        path = download_file_from_gcs(task.filename)
     print(f"{task.taskid}\n"
           f"{task.question}\n"
           f"{task.expectedanswer}\n"
           f"{task.filename}"
-          f"\n{task.filepath}")
-    evaluate(task)
+          f"\nFile Path = {task.filepath}")
+    print(path)
+    response = evaluate(task, path, llm)
+    print(response)
