@@ -200,9 +200,14 @@ This will start the Streamlit app and open it in your browser.
 
 
 
+
 ### Conclusion
 
 Your application should now be running, and the required infrastructure should be deployed. For additional configuration or updates, refer to the project-specific documentation.
+
+### Demo URL Link 
+
+https://drive.google.com/drive/folders/1wgYeUY-HsDuWcqGq1hSNVRQ3gvQBMLZC?usp=sharing
 
 ### ATTESTATION  
 
@@ -215,4 +220,6 @@ a. Sai Surya Madhav Rebbapragada: 35% - Worked on Streamlit UI, OpenAI prototyin
 b. Uday Kiran Dasari: 30% - Worked on Metrics UI, database setup and populating data, OpenAI & Streamlit prototying - 30hrs
 
 c. Akash Varun: 35% - OpenAI prototying and all the required tools, object store setup and popuating with data - 35hrs
+
+
 
