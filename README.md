@@ -203,3 +203,13 @@ This will start the Streamlit app and open it in your browser.
 ### Conclusion
 
 Your application should now be running, and the required infrastructure should be deployed. For additional configuration or updates, refer to the project-specific documentation.
+
+### ATTESTATION  
+
+WE ATTEST THAT WE HAVEN’T USED ANY OTHER STUDENTS’ WORK IN OUR
+ASSIGNMENT AND ABIDE BY THE POLICIES LISTED IN THE STUDENT HANDBOOK
+Contribution:
+a. Sai Surya Madhav Rebbapragada: 35% - Worked on Streamlit UI, OpenAI prototying, Terraform for infra setup - 30hrs
+b. Uday Kiran Dasari: 30% - Worked on Metrics UI, database setup and populating data, OpenAI & Streamlit prototying - 25hrs
+c. Akash Varun: 35% - OpenAI prototying and all the required tools, object store setup and popuating with data - 30hrs
+
