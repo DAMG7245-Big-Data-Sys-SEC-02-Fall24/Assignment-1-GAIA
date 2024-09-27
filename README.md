@@ -1,7 +1,21 @@
 # GAIA Benchmark Validation Application
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFCA28?style=for-the-badge&logo=huggingface&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-623CE4?style=for-the-badge&logo=terraform&logoColor=white)
+![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+
+
+
+
+
+
+
 
 ## Abstract
-This project is focused on building an evaluation tool for the GAIA dataset using Streamlit. The application allows users to select test cases from a multi-model validation dataset, send queries to the OpenAI model, and evaluate its responses. The application enables users to compare model outputs with expected answers, providing options to correct and re-evaluate the model performance. A final summary of results is generated to track performance across various test cases.
+This project builds a validation tool for the GAIA dataset using a multi-page Streamlit interface. It allows users to randomly select and evaluate test cases, query different LLM models via the OpenAI API, and compare model responses with expected answers. Users can annotate incorrect responses and re-evaluate the model’s performance. A metrics dashboard displays the overall performance, and all interactions are tracked in a database for reporting and analytics.
 
 ## Checklist of Deliverables
 - [x] Diagrams illustrating system architecture
@@ -11,61 +25,64 @@ This project is focused on building an evaluation tool for the GAIA dataset usin
 - [x] GitHub repository with project files and documentation
 
 ## Architecture
-The architecture includes the following components:
-1. **GAIA Dataset**: Provides structured metadata for validation purposes. The multi-model dataset includes metadata for test cases.
-2. **Streamlit Application**: A multi-page UI built to explore test cases one at a time.
-3. **Interaction with OpenAI API**: Sends test case data to OpenAI, receives responses, and allows user comparison with expected outputs.
-4. **Editable Annotations**: Provides a mechanism for users to adjust test case annotations if OpenAI’s answer is incorrect, then re-evaluate.
-5. **Feedback and Reporting**: Records user feedback, visualizes test case performance, and generates a summary report.
+The architecture consists of the following components:
+
+![Architecure Diagram](assets/multimodal_llm_benchmarking_application_architecture.png)
+
+
+1. **Data Sources**:
+   - **Hugging Face**: Provides the GAIA dataset for validation and testing.
+   - **GCP (Google Cloud Platform)**: Handles storage via GCS (Google Cloud Storage) buckets and stores metadata in a PostgreSQL database.
+
+2. **Infrastructure**: 
+   - **Terraform**: Automates the setup of GCP resources such as databases and buckets.
+
+3. **Streamlit Application**: 
+   - Multi-page UI with the following pages:
+     - **Landing Page**: Documentation and introduction to the application.
+     - **LLM Prompting Page**: Allows users to select a random task, submit a query to OpenAI models, and interact with responses.
+     - **Metrics Dashboard**: Provides visualizations and reports on model performance.
+
+4. **LLM Interaction**: 
+   - **OpenAI API**: Queries are sent to OpenAI models for LLM responses, which are stored for comparison and further processing.
+
+5. **Database**:
+   - **PostgreSQL**: Stores task metadata, LLM responses, annotations, and interaction logs for analysis.
+
+6. **Storage**: 
+   - **GCS (Google Cloud Storage)**: Manages file uploads, including task-related files fetched during LLM processing.
 
 ## Tech Stack
-- **Streamlit**: Front-end for multi-page application development
-- **OpenAI API**: For generating model responses
-- **GAIA Dataset**: For test case and validation data
-- **Python**: Core language for backend logic and integration
-- **S3 Bucket (or alternative)**: Suggested for data storage and staging
+- **Streamlit**: For the multi-page UI and interaction.
+- **Hugging Face**: Source for GAIA dataset.
+- **OpenAI API**: Used for querying different language models.
+- **Google Cloud Platform** (GCS, PostgreSQL): Storage and database.
+- **Terraform**: Infrastructure management.
+- **Python**: For backend logic and integration with various APIs.
 
 ## Dataset
-- **GAIA Dataset**: A multi-model validation dataset accessible via Hugging Face [GAIA Datasets](https://huggingface.co/datasets/gaia-benchmark/GAIA). It contains structured metadata essential for validation and test cases. The dataset is used to compare OpenAI model responses with predefined answers.
-
-## Features
-- Select specific test cases from GAIA validation dataset.
-- Send test case queries to OpenAI API for evaluation.
-- Compare OpenAI responses with expected answers.
-- Annotate and re-evaluate test cases in case of incorrect responses.
-- Generate summary reports visualizing the performance of test cases.
-
-## Installation
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd <repository-directory>
-   ```
-2. Install required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Set up your OpenAI API key in the environment:
-   ```bash
-   export OPENAI_API_KEY='your-api-key-here'
-   ```
-
-## Usage
-1. Run the Streamlit application:
-   ```bash
-   streamlit run app.py
-   ```
-2. Select a test case from the GAIA validation dataset.
-3. Submit the test case to OpenAI and compare the response.
-4. Annotate incorrect responses and re-submit for evaluation.
-5. View summary results and feedback.
+- **GAIA Dataset**: Available via Hugging Face, the GAIA dataset contains structured metadata and test cases. It forms the core of the benchmarking process.
 
 ## Data Storage
-The data storage design involves a staging phase, where test case data and model responses are stored in an S3 bucket or an alternative cloud storage solution. This ensures efficient data handling and retrieval for evaluation purposes.
 
-## License
-This project is licensed under the MIT License.
+- Files and task-related data are stored in Google Cloud Storage (GCS) buckets.
+- PostgreSQL on GCP is used for storing metadata, LLM responses, and user annotations.
 
----
 
-Feel free to modify any sections or add additional details!
+## Features
+
+### Landing Page:
+- Basic documentation and overview of the application.
+
+### LLM Prompting Page:
+- Pick a random task from the GAIA dataset.
+- Select from different LLM models (default to one OpenAI model).
+- Fetch associated files from GCP and provide context for the query.
+- Submit the question along with the context to OpenAI and view the LLM response.
+- Annotate responses and re-submit the task for evaluation.
+- Save responses to the database, either as-is or after annotation.
+
+### Metrics Dashboard:
+- Visualize performance metrics, including model accuracy, response quality, and interaction history.
+
+
