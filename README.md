@@ -209,6 +209,7 @@ Your application should now be running, and the required infrastructure should b
 WE ATTEST THAT WE HAVEN’T USED ANY OTHER STUDENTS’ WORK IN OUR
 ASSIGNMENT AND ABIDE BY THE POLICIES LISTED IN THE STUDENT HANDBOOK
 Contribution:
+
 a. Sai Surya Madhav Rebbapragada: 35% - Worked on Streamlit UI, OpenAI prototying, Terraform for infra setup - 35hrs
 
 b. Uday Kiran Dasari: 30% - Worked on Metrics UI, database setup and populating data, OpenAI & Streamlit prototying - 30hrs
