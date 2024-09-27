@@ -124,19 +124,21 @@ def delete_data():
 def overall_accuracy_per_llm():
     Session = sessionmaker(bind=engine)
     session = Session()
-    # Reflect the tables
     metadata.reflect(bind=engine)
 
     llmresponses_table = metadata.tables['llmresponses']
+    llms_table = metadata.tables['llms']
 
     query = session.query(
-        llmresponses_table.c.llmid,
+        llms_table.c.llmname,
         (func.count(case(
             (llmresponses_table.c.isannotated == False, llmresponses_table.c.responseid)
         )) / func.count(func.distinct(llmresponses_table.c.taskid)) * 100).label("accuracy_percentage")
     ).filter(
         llmresponses_table.c.resultcategory == 'AS IS'
-    ).group_by(llmresponses_table.c.llmid)
+    ).join(llms_table, llmresponses_table.c.llmid == llms_table.c.llmid).group_by(
+        llms_table.c.llmname
+    )
 
     results = [(row[0], row[1]) for row in query.all()]
     session.close()
@@ -148,26 +150,29 @@ def overall_accuracy_per_llm():
     # session.close()
 
 
+# Function to calculate accuracy with annotation per LLM
 def accuracy_with_annotation():
     Session = sessionmaker(bind=engine)
     session = Session()
-    # Reflect the tables
     metadata.reflect(bind=engine)
 
     llmresponses_table = metadata.tables['llmresponses']
+    llms_table = metadata.tables['llms']
 
     query = session.query(
-        llmresponses_table.c.llmid,
+        llms_table.c.llmname,
         (func.count(case(
             (llmresponses_table.c.isannotated == True, llmresponses_table.c.responseid)
         )) / func.count(func.distinct(llmresponses_table.c.taskid)) * 100).label("accuracy_with_annotation")
     ).filter(
         llmresponses_table.c.resultcategory == 'With Annotation'
-    ).group_by(llmresponses_table.c.llmid)
+    ).join(llms_table, llmresponses_table.c.llmid == llms_table.c.llmid).group_by(
+        llms_table.c.llmname
+    )
+
     results = [(row[0], row[1]) for row in query.all()]
     session.close()
-
-    return results  # Return data in list of tuples (LLM ID, Accuracy with Annotation)
+    return results
 
     # print("\nAccuracy with Annotation:")
     # for row in query.all():
@@ -176,26 +181,29 @@ def accuracy_with_annotation():
     # session.close()
 
 
+# Function to calculate improvement rate per LLM
 def improvement_rate():
     Session = sessionmaker(bind=engine)
     session = Session()
-    # Reflect the tables
     metadata.reflect(bind=engine)
 
     llmresponses_table = metadata.tables['llmresponses']
+    llms_table = metadata.tables['llms']
 
     query = session.query(
-        llmresponses_table.c.llmid,
+        llms_table.c.llmname,
         (func.count(case(
             (llmresponses_table.c.resultcategory == 'With Annotation', llmresponses_table.c.responseid)
         )) / func.count(case(
             (llmresponses_table.c.resultcategory != 'AS IS', llmresponses_table.c.responseid)
         )) * 100).label("improvement_rate")
-    ).group_by(llmresponses_table.c.llmid)
+    ).join(llms_table, llmresponses_table.c.llmid == llms_table.c.llmid).group_by(
+        llms_table.c.llmname
+    )
+
     results = [(row[0], row[1]) for row in query.all()]
     session.close()
-
-    return results  # Return data in list of tuples (LLM ID, Improvement Rate)
+    return results
     # print("\nImprovement Rate:")
     # for row in query.all():
     #     print(f"LLM ID: {row[0]}, Improvement Rate: {row[1]:.2f}%")
@@ -203,25 +211,28 @@ def improvement_rate():
     # session.close()
 
 
+# Function to calculate failure rate after annotation per LLM
 def failure_rate_after_annotation():
     Session = sessionmaker(bind=engine)
     session = Session()
-    # Reflect the tables
     metadata.reflect(bind=engine)
 
     llmresponses_table = metadata.tables['llmresponses']
+    llms_table = metadata.tables['llms']
 
     query = session.query(
-        llmresponses_table.c.llmid,
+        llms_table.c.llmname,
         (func.count(case(
             (llmresponses_table.c.resultcategory == 'Helpless!', llmresponses_table.c.responseid)
         )) / func.count(func.distinct(llmresponses_table.c.taskid)) * 100).label("failure_rate")
-    ).group_by(llmresponses_table.c.llmid)
+    ).join(llms_table, llmresponses_table.c.llmid == llms_table.c.llmid).group_by(
+        llms_table.c.llmname
+    )
 
     results = [(row[0], row[1]) for row in query.all()]
     session.close()
+    return results
 
-    return results  # Return data in list of tuples (LLM ID, Failure Rate)
 
     # print("\nFailure Rate after Annotation:")
     # for row in query.all():
@@ -230,29 +241,31 @@ def failure_rate_after_annotation():
     # session.close()
 
 
+# Function to calculate performance by task level
 def performance_by_task_level():
     Session = sessionmaker(bind=engine)
     session = Session()
-    # Reflect the tables
     metadata.reflect(bind=engine)
 
     tasks_table = metadata.tables['tasks']
     llmresponses_table = metadata.tables['llmresponses']
-    
+    llms_table = metadata.tables['llms']
+
     query = session.query(
-        llmresponses_table.c.llmid,
+        llms_table.c.llmname,
         tasks_table.c.level,
         (func.count(case(
             (llmresponses_table.c.resultcategory == 'AS IS', llmresponses_table.c.responseid)
         )) / func.count(func.distinct(llmresponses_table.c.taskid)) * 100).label("performance_by_level")
-    ).join(tasks_table, tasks_table.c.taskid == llmresponses_table.c.taskid).group_by(
-        llmresponses_table.c.llmid, tasks_table.c.level
+    ).join(llms_table, llmresponses_table.c.llmid == llms_table.c.llmid).join(
+        tasks_table, tasks_table.c.taskid == llmresponses_table.c.taskid
+    ).group_by(
+        llms_table.c.llmname, tasks_table.c.level
     )
 
     results = [(row[0], row[1], row[2]) for row in query.all()]
     session.close()
-
-    return results  # Return data in list of tuples (LLM ID, Task Level, Performance)
+    return results
 
     # print("\nPerformance by Task Level:")
     # for row in query.all():
